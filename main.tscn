@@ -1,0 +1,76 @@
+[gd_scene load_steps=10 format=3 uid="uid://babo82woe585g"]
+
+[ext_resource type="Script" uid="uid://brxvh35xkw24x" path="res://main.gd" id="1_0xm2m"]
+[ext_resource type="FontFile" uid="uid://sbhmq2t2wwvf" path="res://typeface.ttf" id="1_ig7tw"]
+[ext_resource type="AudioStream" uid="uid://cdwcrmmi0ay4d" path="res://bgm.mp3" id="3_h2yge"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0xm2m"]
+
+[sub_resource type="Gradient" id="Gradient_0xm2m"]
+interpolation_mode = 2
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_h2yge"]
+gradient = SubResource("Gradient_0xm2m")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+metadata/_snap_enabled = true
+
+[sub_resource type="Curve" id="Curve_1bvp3"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_lquwl"]
+curve = SubResource("Curve_1bvp3")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_7mycd"]
+particle_flag_disable_z = true
+emission_shape_offset = Vector3(640, 360, 0)
+emission_shape_scale = Vector3(0.5, 0.5, 1)
+emission_shape = 3
+emission_box_extents = Vector3(1280, 720, 1)
+gravity = Vector3(0, 98, 0)
+scale_max = 4.0
+color = Color(1, 0.25, 1, 0.03137255)
+alpha_curve = SubResource("CurveTexture_lquwl")
+hue_variation_min = -2.2351742e-08
+hue_variation_max = 0.19999997
+
+[node name="main" type="Control"]
+clip_contents = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0xm2m")
+
+[node name="log" type="RichTextLabel" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+theme_override_constants/paragraph_separation = -4
+theme_override_fonts/normal_font = ExtResource("1_ig7tw")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_0xm2m")
+bbcode_enabled = true
+scroll_following = true
+selection_enabled = true
+
+[node name="particles" type="GPUParticles2D" parent="."]
+amount = 64
+texture = SubResource("GradientTexture2D_h2yge")
+lifetime = 2.0
+process_material = SubResource("ParticleProcessMaterial_7mycd")
+
+[node name="music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_h2yge")
+autoplay = true
