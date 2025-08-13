@@ -77,7 +77,7 @@ func process_complete() -> void:
 #region program methods
 func fetch_latest_db(to: String) -> bool:
 	if DirAccess.dir_exists_absolute("user://sscdb"):
-		DirAccess.remove_absolute("user://sscdb")
+		remove_item("%s/sscdb" % ProjectSettings.globalize_path("user://"))
 	var req: HTTPRequest = HTTPRequest.new()
 	self.add_child(req)
 	req.download_file = to
@@ -99,8 +99,16 @@ func extract_fetched_db(to: String) -> void:
 		var buffer: PackedByteArray = reader.read_file(file_path)
 		file.store_buffer(buffer)
 	reader.close()
-	DirAccess.remove_absolute("user://sscdb.zip")
+	remove_item("%s/sscdb.zip" % ProjectSettings.globalize_path("user://"))
 	DirAccess.rename_absolute("user://sscdb-main", "user://sscdb")
+
+func remove_item(path: String) -> void: # because godot's builtin one has privelage issues
+	match OS.get_name().to_lower():
+		"linux":
+			OS.execute("rm", ["-rf", path])
+		"windows":
+			var fixed_path: String = path.replace("/", "\\")
+			OS.execute("del", ["/F", "/Q", fixed_path])
 #endregion
 
 #region builtin methods
@@ -176,10 +184,28 @@ func _ready() -> void:
 	inline_wait("extracting fetched database")
 	extract_fetched_db("user://")
 	inline_result(ResultType.SUCCESS)
+	if DirAccess.dir_exists_absolute("%s/ssc" % content_path):
+		append_reg("found existing fetched database, queued to replace")
+		print("%s/ssc" % content_path)
+		remove_item("%s/ssc" % content_path)
 	inline_wait("cleaning up")
-	if DirAccess.dir_exists_absolute("%s/ssc" % content_path): DirAccess.remove_absolute("%s/ssc" % content_path)
 	DirAccess.rename_absolute("user://sscdb", "%s/ssc" % content_path)
 	inline_result(ResultType.SUCCESS)
+	if DirAccess.dir_exists_absolute("user://custom"):
+		append_reg("found custom chart data")
+		inline_wait("syncing customs with local database")
+		if len(DirAccess.get_directories_at("user://custom")) == 2:
+			DirAccess.make_dir_absolute("%s/ssc/custom" % content_path)
+			DirAccess.make_dir_absolute("%s/ssc/custom/aud" % content_path)
+			DirAccess.make_dir_absolute("%s/ssc/custom/img" % content_path)
+			for img: String in DirAccess.get_files_at("user://custom/img"):
+				DirAccess.copy_absolute("user://custom/img/%s" % img, "%s/ssc/custom/img/%s" % [content_path, img])
+			for aud: String in DirAccess.get_files_at("user://custom/aud"):
+				DirAccess.copy_absolute("user://custom/aud/%s" % aud, "%s/ssc/custom/aud/%s" % [content_path, aud])
+			inline_result(ResultType.SUCCESS)
+		else:
+			inline_result(ResultType.FAIL)
+			append_err("invalid custom folder structure, skipping")
 	process_complete()
 	return
 
