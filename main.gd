@@ -178,35 +178,34 @@ func _ready() -> void:
 				content_path = "%s/%s/content" % [version_dir, sorted_versions[0].name]
 				inline_result(ResultType.SUCCESS)
 			else:
-				version_errors += 1
 				inline_result(ResultType.FAIL)
 				append_err("could not find regular player")
-				inline_wait("checking for alternative bootstrappers")
-				version_dir = "C:/Users/%s/AppData/Local/Fishstrap/Modifications" % OS.get_environment("USERNAME")
+			inline_wait("checking for alternative bootstrappers")
+			version_dir = "C:/Users/%s/AppData/Local/Fishstrap/Modifications" % OS.get_environment("USERNAME")
+			if DirAccess.dir_exists_absolute(version_dir):
+				make_dir("%s/content" % version_dir)
+				content_path = "%s/content" % version_dir
+			else:
+				version_errors += 1
+				version_dir = "C:/Users/%s/AppData/Local/Bloxstrap/Modifications" % OS.get_environment("USERNAME")
 				if DirAccess.dir_exists_absolute(version_dir):
 					make_dir("%s/content" % version_dir)
 					content_path = "%s/content" % version_dir
 				else:
 					version_errors += 1
-					version_dir = "C:/Users/%s/AppData/Local/Bloxstrap/Modifications" % OS.get_environment("USERNAME")
-					if DirAccess.dir_exists_absolute(version_dir):
-						make_dir("%s/content" % version_dir)
-						content_path = "%s/content" % version_dir
-					else:
-						version_errors += 1
-				if version_errors >= 3:
-					inline_result(ResultType.FAIL)
-					append_err("could not find alternative bootstrapper")
-					fatal_stop()
-				else:
-					inline_result(ResultType.SUCCESS)
-					var client_name: String
-					match version_errors:
-						1: client_name = "fishstrap"
-						2: client_name = "bloxstrap"
-						_: client_name = "alternative bootstrapper"
-					append_reg("found %s" % client_name)
-				return
+			if version_errors >= 2:
+				inline_result(ResultType.FAIL)
+				append_err("could not find alternative bootstrapper")
+				fatal_stop()
+			else:
+				inline_result(ResultType.SUCCESS)
+				var client_name: String
+				match version_errors:
+					0: client_name = "fishstrap"
+					1: client_name = "bloxstrap"
+					_: client_name = "alternative bootstrapper"
+				append_reg("found %s" % client_name)
+			return
 		_:
 			append_err("unsupported operating system")
 			fatal_stop()
