@@ -109,6 +109,17 @@ func remove_item(path: String) -> void: # because godot's builtin one has privel
 		"windows":
 			var fixed_path: String = path.replace("/", "\\")
 			OS.execute("del", ["/F", "/Q", fixed_path])
+
+func make_dir(path: String) -> void:
+	match OS.get_name().to_lower():
+		"linux":
+			OS.execute("mkdir", ["-p", path])
+		"windows":
+			var fixed_path: String = path.replace("/", "\\")
+			OS.execute("powershell", [
+				"-WindowStyle", "Hidden",
+				"-Command", "New-Item -ItemType Directory -Path '%s' -Force" % fixed_path
+			])
 #endregion
 
 #region builtin methods
@@ -152,6 +163,7 @@ func _ready() -> void:
 			inline_wait("locating latest player content directory")
 			var version_dir: String = "C:/Users/%s/AppData/Local/Roblox/Versions" % OS.get_environment("USERNAME")
 			var sorted_versions: Array[Dictionary]
+			var version_errors: int = 0
 			if DirAccess.dir_exists_absolute(version_dir):
 				for version in DirAccess.get_directories_at(version_dir):
 					var version_is_player: bool = true
@@ -166,8 +178,34 @@ func _ready() -> void:
 				content_path = "%s/%s/content" % [version_dir, sorted_versions[0].name]
 				inline_result(ResultType.SUCCESS)
 			else:
-				append_err("could not find player; is it installed?")
-				fatal_stop()
+				version_errors += 1
+				inline_result(ResultType.FAIL)
+				append_err("could not find regular player")
+				inline_wait("checking for alternative bootstrappers")
+				version_dir = "C:/Users/%s/AppData/Local/Fishstrap/Modifications" % OS.get_environment("USERNAME")
+				if DirAccess.dir_exists_absolute(version_dir):
+					make_dir("%s/content" % version_dir)
+					content_path = "%s/content" % version_dir
+				else:
+					version_errors += 1
+					version_dir = "C:/Users/%s/AppData/Local/Bloxstrap/Modifications" % OS.get_environment("USERNAME")
+					if DirAccess.dir_exists_absolute(version_dir):
+						make_dir("%s/content" % version_dir)
+						content_path = "%s/content" % version_dir
+					else:
+						version_errors += 1
+				if version_errors >= 3:
+					inline_result(ResultType.FAIL)
+					append_err("could not find alternative bootstrapper")
+					fatal_stop()
+				else:
+					inline_result(ResultType.SUCCESS)
+					var client_name: String
+					match version_errors:
+						1: client_name = "fishstrap"
+						2: client_name = "bloxstrap"
+						_: client_name = "alternative bootstrapper"
+					append_reg("found %s" % client_name)
 				return
 		_:
 			append_err("unsupported operating system")

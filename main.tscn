@@ -34,10 +34,10 @@ emission_shape = 3
 emission_box_extents = Vector3(1280, 720, 1)
 gravity = Vector3(0, 98, 0)
 scale_max = 4.0
-color = Color(1, 0.25, 1, 0.03137255)
+color = Color(1, 0.25, 1, 0.0313726)
 alpha_curve = SubResource("CurveTexture_lquwl")
-hue_variation_min = -2.2351742e-08
-hue_variation_max = 0.19999997
+hue_variation_min = -2.23517e-08
+hue_variation_max = 0.2
 
 [node name="main" type="Control"]
 clip_contents = true
@@ -58,7 +58,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 2
-theme_override_constants/paragraph_separation = -4
 theme_override_fonts/normal_font = ExtResource("1_ig7tw")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_0xm2m")
 bbcode_enabled = true
